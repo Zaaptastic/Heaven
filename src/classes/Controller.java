@@ -61,6 +61,14 @@ public class Controller {
         boolean endOfTurn = false;
 
         // Beginning of each player's turn: calculate funds
+        int totalIncome = 0;
+        for (Structure structure : battlefield.getStructures()) {
+            if (structure.getOwner() == player) {
+                totalIncome += 1000;
+            }
+        }
+        int updatedFunds = playerFunds.get(player) + totalIncome;
+        playerFunds.replace(player, updatedFunds);
 
         //TODO: Add turn history and logging
         while (!endOfTurn) {
