@@ -128,7 +128,7 @@ public class Controller {
                 continue;
             }
 
-            if (unit.getUnitType().getIdentifier() == "I") {
+            if (unit.getUnitType().getIdentifier().equals("I")) {
                 HeavenReturnStatus returnStatus = structure.decreaseHealth(player, unit.getCurrentHealth());
                 if (returnStatus.getEvent() == Event.CAPITAL_CAPTURE) {
                     // GAME OVER
@@ -148,6 +148,10 @@ public class Controller {
         if (unitToMove.hasMoved()) {
             return new HeavenReturnStatus(false, "Unit has already moved");
         }
+        if (unitToMove.getUnitClass() == UnitClass.RANGED && unitToMove.hasAttacked()) {
+            return new HeavenReturnStatus(false, "Ranged units cannot move and attack on the same turn");
+        }
+
         Map<Integer, Integer> validMoves = findLegalMoves(battlefield, unitToMove, startRow, startCol);
         if (validMoves.containsKey(endRow) && validMoves.containsValue(endCol)) {
             battlefield.removeUnit(startRow, startCol);
@@ -171,6 +175,9 @@ public class Controller {
         if (attacker.hasAttacked()) {
             return new HeavenReturnStatus(false, "Unit has already attacked");
         }
+        if (attacker.getUnitClass() == UnitClass.RANGED && attacker.hasMoved()) {
+            return new HeavenReturnStatus(false, "Ranged units cannot move and attack on the same turn");
+        }
 
         Map<Integer, Integer> validAttacks = findLegalAttacks(battlefield, attacker, attackerRow, attackerCol);
         if (validAttacks.containsKey(defenderRow) && validAttacks.containsValue(defenderCol)) {
@@ -188,7 +195,7 @@ public class Controller {
 
     private HeavenReturnStatus createUnit(int row, int col, String identifier, Player player) {
         Structure structure = battlefield.getStructureAtPosition(row, col);
-        
+
         if (structure == null) {
             return new HeavenReturnStatus(false, "No structure found at position (" + row + "," + col);
         }
