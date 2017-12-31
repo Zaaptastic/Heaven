@@ -20,14 +20,14 @@ public class Controller {
     private HashMap<String, UnitType> unitTypes;
 
     private int turnCount;
-    private int playerOneFunds;
-    private int playerTwoFunds;
+    private HashMap<Player, Integer> playerFunds;
 
     public Controller() {
         turnCount = 0;
         battlefield = new Battlefield(100, 100);
-        playerOneFunds = 0;
-        playerTwoFunds = 0;
+        playerFunds = new HashMap<>();
+        playerFunds.put(Player.PLAYER_ONE, 0);
+        playerFunds.put(Player.PLAYER_TWO, 0);
 
         listener = new Scanner(System.in);
 
@@ -188,6 +188,7 @@ public class Controller {
 
     private HeavenReturnStatus createUnit(int row, int col, String identifier, Player player) {
         Structure structure = battlefield.getStructureAtPosition(row, col);
+        
         if (structure == null) {
             return new HeavenReturnStatus(false, "No structure found at position (" + row + "," + col);
         }
@@ -200,25 +201,19 @@ public class Controller {
         if (structure.getStructureType() != StructureType.FACTORY) {
             return new HeavenReturnStatus(false, "Unit - Structure creation mismatch");
         }
+        if (!playerFunds.keySet().contains(player)) {
+            return new HeavenReturnStatus(false, "Invalid player provided");
+        }
 
         Unit unitToCreate = new Unit(unitTypes.get(identifier), player);
         int unitCost = unitToCreate.getCost();
-
-        if (player == Player.PLAYER_ONE) {
-            if (unitCost > playerOneFunds) {
-                return new HeavenReturnStatus(false, "Player One cannot afford purchase");
-            }
-            playerOneFunds -= unitCost;
-            battlefield.addUnit(unitToCreate, row, col);
-        } else if (player == Player.PLAYER_TWO) {
-            if (unitCost > playerTwoFunds) {
-                return new HeavenReturnStatus(false, "Player Two cannot afford purchase");
-            }
-            playerTwoFunds -= unitCost;
-            battlefield.addUnit(unitToCreate, row, col);
-        } else {
-            return new HeavenReturnStatus(false, "Invalid Player provided: " + player);
+        int currentPlayerFunds = playerFunds.get(player);
+        if (unitCost > currentPlayerFunds) {
+            return new HeavenReturnStatus(false, player + " cannot afford purchase");
         }
+
+        playerFunds.replace(player, currentPlayerFunds - unitCost);
+        battlefield.addUnit(unitToCreate, row, col);
 
         return new HeavenReturnStatus(true);
     }
