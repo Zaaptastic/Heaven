@@ -207,14 +207,14 @@ public class Controller {
         if (structure == null) {
             return new HeavenReturnStatus(false, "No structure found at position (" + row + "," + col);
         }
+        if (structure.getStructureType() != StructureType.FACTORY) {
+            return new HeavenReturnStatus(false, "Unit - Structure creation mismatch");
+        }
         if (structure.getOwner() != player) {
             return new HeavenReturnStatus(false, "Cannot create unit on unowned structure");
         }
         if (!battlefield.isOpenPosition(row, col)) {
             return new HeavenReturnStatus(false, "Cannot create unit on occupied structure");
-        }
-        if (structure.getStructureType() != StructureType.FACTORY) {
-            return new HeavenReturnStatus(false, "Unit - Structure creation mismatch");
         }
         if (!playerFunds.keySet().contains(player)) {
             return new HeavenReturnStatus(false, "Invalid player provided");

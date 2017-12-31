@@ -47,7 +47,7 @@ public class HeavenUtils {
     }
 
     private static HashMap<Integer, Integer> iterativeGridSearch(Battlefield battlefield, Queue<SearchCoordinate> searchSpace, int maxDist, int minDist) {
-        HashMap<Integer, Integer> solutions = new HashMap<>();
+        ArrayList<SearchCoordinate> solutions = new ArrayList<>();
 
         while (!searchSpace.isEmpty()) {
             SearchCoordinate validMove = searchSpace.remove();
@@ -55,7 +55,7 @@ public class HeavenUtils {
             int currentCol = validMove.getCol();
             if (validMove.getDistanceFromOrigin() >= minDist) {
                 // For findLegalAttacks. See comment above.
-                solutions.put(currentRow, currentCol);
+                solutions.add(validMove);
             }
             int currentDistanceFromOrigin = validMove.getDistanceFromOrigin();
 
@@ -64,25 +64,39 @@ public class HeavenUtils {
             if (currentDistanceFromOrigin == maxDist) {
                 continue;
             }
+
+            SearchCoordinate northCoordinate = new SearchCoordinate(currentRow - 1, currentCol, currentDistanceFromOrigin + 1);
+            SearchCoordinate southCoordinate = new SearchCoordinate(currentRow +1, currentCol, currentDistanceFromOrigin + 1);
+            SearchCoordinate westCoordinate = new SearchCoordinate(currentRow, currentCol-1, currentDistanceFromOrigin + 1);
+            SearchCoordinate eastCoordinate = new SearchCoordinate(currentRow, currentCol+1, currentDistanceFromOrigin + 1);
+
             //North
-            if (battlefield.isOpenPosition(currentRow-1, currentCol)) {
-                searchSpace.add(new SearchCoordinate(currentRow - 1, currentCol, currentDistanceFromOrigin + 1));
+            if (battlefield.isOpenPosition(currentRow-1, currentCol) && !solutions.contains(northCoordinate)
+                    && !searchSpace.contains(northCoordinate)) {
+                searchSpace.add(northCoordinate);
             }
             //South
-            if (battlefield.isOpenPosition(currentRow+1, currentCol)) {
-                searchSpace.add(new SearchCoordinate(currentRow +1, currentCol, currentDistanceFromOrigin + 1));
+            if (battlefield.isOpenPosition(currentRow+1, currentCol)&& !solutions.contains(southCoordinate)
+                    && !searchSpace.contains(southCoordinate)) {
+                searchSpace.add(southCoordinate);
             }
             //West
-            if (battlefield.isOpenPosition(currentRow, currentCol-1)) {
-                searchSpace.add(new SearchCoordinate(currentRow, currentCol-1, currentDistanceFromOrigin + 1));
+            if (battlefield.isOpenPosition(currentRow, currentCol-1)&& !solutions.contains(westCoordinate)
+                    && !searchSpace.contains(westCoordinate)) {
+                searchSpace.add(westCoordinate);
             }
             //East
-            if (battlefield.isOpenPosition(currentRow, currentCol+1)) {
-                searchSpace.add(new SearchCoordinate(currentRow, currentCol+1, currentDistanceFromOrigin + 1));
+            if (battlefield.isOpenPosition(currentRow, currentCol+1)&& !solutions.contains(eastCoordinate)
+                    && !searchSpace.contains(eastCoordinate)) {
+                searchSpace.add(eastCoordinate);
             }
         }
 
-        return solutions;
+        HashMap<Integer, Integer> toReturn = new HashMap<>();
+        for (SearchCoordinate solution : solutions) {
+            toReturn.put(solution.getRow(), solution.getCol());
+        }
+        return toReturn;
     }
 }
 
