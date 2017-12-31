@@ -1,6 +1,9 @@
 package util;
 
 public class HeavenConstants {
-    public static enum Player { PLAYER_ONE, PLAYER_TWO}
-    public static enum UnitClass { MELEE, RANGED }
+    public enum Player { PLAYER_ONE, PLAYER_TWO }
+    public enum UnitClass { MELEE, RANGED }
+    // TODO: Add other production types (airfield, docks, etc.)
+    public enum StructureType { CITY, FACTORY, CAPITAL }
+    public enum Event { CAPITAL_CAPTURE }
 }

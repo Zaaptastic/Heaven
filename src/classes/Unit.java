@@ -1,13 +1,14 @@
+package classes;
+
 import unitTypes.UnitType;
 import util.HeavenConstants.UnitClass;
 import util.HeavenConstants.Player;
 import util.HeavenReturnStatus;
-import util.HeavenUtils;
 
 public class Unit {
     private UnitType unitType;
     private UnitClass unitClass;
-    private Player owningPlayer;
+    private Player owner;
     private int currentHealth;
     private int maximumHealth;
     private int attackValue;
@@ -15,12 +16,14 @@ public class Unit {
     private int range;
     private int movementSpeed;
     private int cost;
+    private boolean moved;
+    private boolean attacked;
 
 
     public Unit (UnitType unitType, Player player) {
         this.unitType = unitType;
         this.unitClass = unitType.getUnitClass();
-        this.owningPlayer = player;
+        this.owner = player;
 
         // These attributes are set here to allow for Player-specific attributes later
         this.maximumHealth = unitType.getMaximumHealth();
@@ -30,10 +33,18 @@ public class Unit {
         this.range = unitType.getRange();
         this.movementSpeed = unitType.getMovementSpeed();
         this.cost = unitType.getCost();
+
+        this.moved = false;
+        this.attacked = false;
     }
 
     public HeavenReturnStatus attackEnemyUnit(Unit enemyUnit) {
-        if (enemyUnit.owningPlayer == this.owningPlayer) {
+        if (enemyUnit.owner == this.owner) {
+            // TODO: Fill this in.
+
+            moved = true;
+            attacked = true;
+
             return new HeavenReturnStatus(false, "Cannot attack friendly unit");
         }
 
@@ -52,8 +63,8 @@ public class Unit {
         return unitClass;
     }
 
-    public Player getOwningPlayer() {
-        return owningPlayer;
+    public Player getOwner() {
+        return owner;
     }
 
     public int getCurrentHealth() {
@@ -80,6 +91,23 @@ public class Unit {
         return movementSpeed;
     }
 
+    public int getCost() {
+        return cost;
+    }
 
+    public boolean hasAttacked() {
+        return attacked;
+    }
 
+    public void setAttacked(boolean attacked) {
+        this.attacked = attacked;
+    }
+
+    public boolean hasMoved() {
+        return moved;
+    }
+
+    public void setMoved(boolean moved) {
+        this.moved = moved;
+    }
 }

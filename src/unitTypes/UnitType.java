@@ -10,8 +10,10 @@ public class UnitType {
     private int movementSpeed;
     private HeavenConstants.UnitClass unitClass;
     private int cost;
+    private String identifier;
 
-    UnitType(int maximumHealth, int attackValue, int defenseValue, int range, int movementSpeed, HeavenConstants.UnitClass unitClass, int cost){
+    UnitType(int maximumHealth, int attackValue, int defenseValue, int range, int movementSpeed,
+             HeavenConstants.UnitClass unitClass, int cost, String identifier){
         this.maximumHealth = maximumHealth;
         this.attackValue = attackValue;
         this.defenseValue = defenseValue;
@@ -19,6 +21,7 @@ public class UnitType {
         this.movementSpeed = movementSpeed;
         this.unitClass = unitClass;
         this.cost = cost;
+        this.identifier = identifier;
     }
 
     public int getAttackValue() {
@@ -47,5 +50,9 @@ public class UnitType {
 
     public int getCost() {
         return cost;
+    }
+
+    public String getIdentifier() {
+        return identifier;
     }
 }
