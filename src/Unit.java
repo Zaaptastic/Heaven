@@ -1,6 +1,7 @@
 import unitTypes.UnitType;
 import util.HeavenConstants.UnitClass;
 import util.HeavenConstants.Player;
+import util.HeavenReturnStatus;
 import util.HeavenUtils;
 
 public class Unit {
@@ -13,6 +14,7 @@ public class Unit {
     private int defenseValue;
     private int range;
     private int movementSpeed;
+    private int cost;
 
 
     public Unit (UnitType unitType, Player player) {
@@ -27,6 +29,19 @@ public class Unit {
         this.defenseValue = unitType.getDefenseValue();
         this.range = unitType.getRange();
         this.movementSpeed = unitType.getMovementSpeed();
+        this.cost = unitType.getCost();
+    }
+
+    public HeavenReturnStatus attackEnemyUnit(Unit enemyUnit) {
+        if (enemyUnit.owningPlayer == this.owningPlayer) {
+            return new HeavenReturnStatus(false, "Cannot attack friendly unit");
+        }
+
+        // Calculate damage to enemyUnit
+
+        // Calculate damage to friendlyUnit
+
+        return new HeavenReturnStatus(true);
     }
 
     public UnitType getUnitType() {
