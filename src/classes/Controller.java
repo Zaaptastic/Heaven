@@ -174,7 +174,14 @@ public class Controller {
 
         Map<Integer, Integer> validAttacks = findLegalAttacks(battlefield, attacker, attackerRow, attackerCol);
         if (validAttacks.containsKey(defenderRow) && validAttacks.containsValue(defenderCol)) {
-            return attacker.attackEnemyUnit(defender);
+            HeavenReturnStatus returnStatus = attacker.attackEnemyUnit(defender);
+            if (attacker.getCurrentHealth() <= 0) {
+                battlefield.removeUnit(attackerRow, attackerCol);
+            }
+            if (defender.getCurrentHealth() <= 0) {
+                battlefield.removeUnit(defenderRow, defenderCol);
+            }
+            return returnStatus;
         }
         return new HeavenReturnStatus(false, "Unit cannot attack target square");
     }

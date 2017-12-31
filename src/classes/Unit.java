@@ -40,19 +40,31 @@ public class Unit {
 
     public HeavenReturnStatus attackEnemyUnit(Unit enemyUnit) {
         if (enemyUnit.owner == this.owner) {
-            // TODO: Fill this in.
-
-            moved = true;
-            attacked = true;
-
             return new HeavenReturnStatus(false, "Cannot attack friendly unit");
         }
 
-        // Calculate damage to enemyUnit
+        enemyUnit.setCurrentHealth(enemyUnit.currentHealth - calculateDamageToDeal(attackValue, enemyUnit.getDefenseValue(), currentHealth, maximumHealth));
 
-        // Calculate damage to friendlyUnit
+        // Retaliation damage, but only if the enemy unit is alive and not ranged.
+        if (enemyUnit.getCurrentHealth() > 0 && enemyUnit.getUnitClass() != UnitClass.RANGED) {
+            currentHealth = currentHealth - calculateDamageToDeal(enemyUnit.getAttackValue(), defenseValue, enemyUnit.getCurrentHealth(), enemyUnit.getMaximumHealth());
+        }
+
+        // Cannot move after attacking
+        moved = true;
+        attacked = true;
 
         return new HeavenReturnStatus(true);
+    }
+
+    private int calculateDamageToDeal(int attackerAttackValue, int defenderDefenseValue, int attackerCurrentHealth, int attackerMaximumHealth) {
+        double damageMultiplier = (double) (attackerAttackValue / defenderDefenseValue);
+        double fatigueMultiplier = (double) (attackerCurrentHealth / attackerMaximumHealth);
+        if (damageMultiplier > 1.0) {
+            damageMultiplier = 1;
+        }
+
+        return (int) Math.ceil(attackerAttackValue * damageMultiplier * fatigueMultiplier);
     }
 
     public UnitType getUnitType() {
@@ -69,6 +81,10 @@ public class Unit {
 
     public int getCurrentHealth() {
         return currentHealth;
+    }
+
+    public void setCurrentHealth(int currentHealth) {
+        this.currentHealth = currentHealth;
     }
 
     public int getMaximumHealth() {
