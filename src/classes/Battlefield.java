@@ -1,5 +1,6 @@
 package classes;
 
+import battlefields.BattlefieldSpecification;
 import util.HeavenReturnStatus;
 
 import java.util.ArrayList;
@@ -11,13 +12,12 @@ public class Battlefield {
     private ArrayList<Structure> structures;
     private Unit[][] grid;
 
-    public Battlefield(int width, int length) {
-        this.width = width;
-        this.length = length;
+    public Battlefield(BattlefieldSpecification battlefieldSpecification) {
+        this.width = battlefieldSpecification.getWidth();
+        this.length = battlefieldSpecification.getLength();
         this.units = new ArrayList<>();
         this.grid = new Unit[length][width];
-        //TODO: Add method to validate structures as they are added. Make the structures list static
-        this.structures = new ArrayList<>();
+        this.structures = battlefieldSpecification.getStructures();
     }
 
     public ArrayList<Structure> getStructures() {

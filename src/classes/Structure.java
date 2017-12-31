@@ -20,6 +20,15 @@ public class Structure {
         this.owner = null;
     }
 
+    public Structure(StructureType structureType, int row, int col, Player player) {
+        this.structureType = structureType;
+        this.currentHealth = 100;
+        this.maxHealth = 100;
+        this.row = row;
+        this.col = col;
+        this.owner = player;
+    }
+
     public HeavenReturnStatus decreaseHealth(Player attackingPlayer, int damageToTake) {
         currentHealth = currentHealth - damageToTake;
         if (currentHealth <= 0) {

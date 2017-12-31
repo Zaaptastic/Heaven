@@ -1,8 +1,8 @@
-import classes.Controller;
+import classes.GameController;
 
 public class DebugTest {
     public static void main() {
-        Controller controller = new Controller();
-        controller.nextTurn();
+        GameController gameController = new GameController();
+        gameController.nextTurn();
     }
 }
