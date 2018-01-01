@@ -43,7 +43,7 @@ public class Battlefield {
 
     public HeavenReturnStatus removeUnit(int row, int col) {
         try {
-            grid[row][col] = null;
+            grid[row][col].setUnitOnSquare(null);
             return new HeavenReturnStatus(true);
         } catch (Exception e) {
             return new HeavenReturnStatus(false, "Could not remove unit from battlefield: " + e);
