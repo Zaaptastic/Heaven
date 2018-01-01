@@ -36,7 +36,7 @@ public class HeavenUtils {
         } else if (structureType == HeavenConstants.StructureType.CITY) {
             return "$";
         } else {
-            return "X";
+            return "_";
         }
     }
 
@@ -46,7 +46,7 @@ public class HeavenUtils {
         } else if (structure.getOwner() == HeavenConstants.Player.PLAYER_TWO) {
             return "2";
         } else {
-            return "X";
+            return "_";
         }
     }
 
@@ -56,7 +56,7 @@ public class HeavenUtils {
         } else if (unit.getOwner() == HeavenConstants.Player.PLAYER_TWO) {
             return "2";
         } else {
-            return "X";
+            return "_";
         }
     }
 

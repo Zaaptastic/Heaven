@@ -44,6 +44,7 @@ public class GameController {
 
     public HeavenReturnStatus nextTurn() {
         turnCount++;
+        System.out.println("LOG: Beginning turn " + turnCount);
         gameLog.append("-------------------------- Turn " + turnCount + " --------------------------\n");
         gameLog.append("~~~~~ Player One ~~~~~~\n");
         HeavenReturnStatus returnStatus = nextTurn(Player.PLAYER_ONE);
@@ -84,9 +85,9 @@ public class GameController {
         //TODO: Add turn history and logging
         while (!endOfTurn) {
             // Listen for inputs, executing each as a move, until the player declares end of his turn.
-            System.out.println("Temporary UI for making moves:\nend - End Turn\nmR,C:R,C - move unit to new position" +
+            System.out.print("Temporary UI for making moves:\nend - End Turn\nmR,C:R,C - move unit to new position" +
                     "\naR,C:R,C - attack with unit to position\ncR,C:I - create unit at structure\n" +
-                    "show - Show current battlefield state");
+                    "show - Show current battlefield state\n>");
             String input = listener.next();
 
             if (input.equals("end")) {

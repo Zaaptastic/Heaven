@@ -90,6 +90,9 @@ public class Battlefield {
         for (Square[] row : grid) {
             for (Square square : row) {
                 Unit unit = square.getUnitOnSquare();
+                if (unit == null) {
+                    continue;
+                }
                 unit.setAttacked(false);
                 unit.setMoved(false);
             }

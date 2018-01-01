@@ -12,7 +12,8 @@ public class HeavenReturnStatus {
         } else {
             errorMsg = "Generic Failure";
         }
-        new HeavenReturnStatus(true, errorMsg);
+        this.successStatus = successStatus;
+        this.errorMsg = errorMsg;
     }
 
     public HeavenReturnStatus(boolean successStatus, String errorMsg) {

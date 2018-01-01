@@ -12,8 +12,12 @@ public class Controller {
 
         HeavenReturnStatus endOfTurnStatus = new HeavenReturnStatus(true);
 
-        while(endOfTurnStatus.getSuccessStatus() && endOfTurnStatus.getEvent() != HeavenConstants.Event.CAPITAL_CAPTURE) {
+        System.out.println("LOG: Starting game");
+        while(endOfTurnStatus.getSuccessStatus()) {
             endOfTurnStatus = gameController.nextTurn();
+            if (endOfTurnStatus.getEvent() == HeavenConstants.Event.CAPITAL_CAPTURE) {
+                break;
+            }
         }
 
         System.out.println(gameController.getGameLog());
