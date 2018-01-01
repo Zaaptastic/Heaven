@@ -7,17 +7,19 @@ public class UnitType {
     private int attackValue;
     private int defenseValue;
     private int range;
+    private int minimumRange;
     private int movementSpeed;
     private HeavenConstants.UnitClass unitClass;
     private int cost;
     private String identifier;
 
-    UnitType(int maximumHealth, int attackValue, int defenseValue, int range, int movementSpeed,
+    UnitType(int maximumHealth, int attackValue, int defenseValue, int range, int minimumRange, int movementSpeed,
              HeavenConstants.UnitClass unitClass, int cost, String identifier){
         this.maximumHealth = maximumHealth;
         this.attackValue = attackValue;
         this.defenseValue = defenseValue;
         this.range = range;
+        this.minimumRange = minimumRange;
         this.movementSpeed = movementSpeed;
         this.unitClass = unitClass;
         this.cost = cost;
@@ -34,6 +36,10 @@ public class UnitType {
 
     public int getRange() {
         return range;
+    }
+
+    public int getMinimumRange() {
+        return minimumRange;
     }
 
     public int getMovementSpeed() {

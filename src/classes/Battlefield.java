@@ -76,7 +76,6 @@ public class Battlefield {
     }
 
     public String gridToString() {
-        //TODO: Update to include structures
         StringBuilder builder = new StringBuilder();
         for (Square[] row : grid) {
             for (Square square : row) {

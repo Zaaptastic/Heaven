@@ -71,13 +71,14 @@ public class HeavenUtils {
 
     public static HashMap<Integer, Integer> findLegalAttacks(Battlefield battlefield, Unit unit, int row, int col) {
         int maxAttackRange = unit.getRange();
+        int minAttackRange = unit.getMinimumRange();
         Queue<SearchCoordinate> searchSpace = new LinkedList<>();
         // Add origin to search space to begin alg. However this is not a valid attack square
         searchSpace.add(new SearchCoordinate(row, col, 0));
 
         // minimumDistance = 1 so that we do not add the Origin, allowing a unit to attack itself.
         // TODO: Minimum Distances other than 1
-        return iterativeGridSearch(battlefield, searchSpace, maxAttackRange, 1);
+        return iterativeGridSearch(battlefield, searchSpace, maxAttackRange, minAttackRange);
     }
 
     private static HashMap<Integer, Integer> iterativeGridSearch(Battlefield battlefield, Queue<SearchCoordinate> searchSpace, int maxDist, int minDist) {

@@ -14,6 +14,7 @@ public class Unit {
     private int attackValue;
     private int defenseValue;
     private int range;
+    private int minimumRange;
     private int movementSpeed;
     private int cost;
     private boolean moved;
@@ -101,6 +102,10 @@ public class Unit {
 
     public int getRange() {
         return range;
+    }
+
+    public int getMinimumRange() {
+        return minimumRange;
     }
 
     public int getMovementSpeed() {
