@@ -74,7 +74,8 @@ public class GameController {
         while (!endOfTurn) {
             // Listen for inputs, executing each as a move, until the player declares end of his turn.
             System.out.println("Temporary UI for making moves:\nend - End Turn\nmR,C:R,C - move unit to new position" +
-                    "\naR,C:R,C - attack with unit to position\ncR,C:I - create unit at structure");
+                    "\naR,C:R,C - attack with unit to position\ncR,C:I - create unit at structure\n" +
+                    "show - Show current battlefield state");
             String input = listener.next();
 
             if (input.equals("end")) {
@@ -89,7 +90,7 @@ public class GameController {
                 int endRow = Integer.parseInt(endCoords.split(",")[0]);
                 int endCol = Integer.parseInt(endCoords.split(",")[1]);
 
-                HeavenReturnStatus returnStatus = moveUnit(startRow, startCol, endRow, endCol);
+                HeavenReturnStatus returnStatus = moveUnit(startRow, startCol, endRow, endCol, player);
                 if (!returnStatus.getSuccessStatus()) {
                     System.out.println(returnStatus.getErrorMsg());
                 }
@@ -103,7 +104,7 @@ public class GameController {
                 int endRow = Integer.parseInt(endCoords.split(",")[0]);
                 int endCol = Integer.parseInt(endCoords.split(",")[1]);
 
-                HeavenReturnStatus returnStatus = attackUnit(startRow, startCol, endRow, endCol);
+                HeavenReturnStatus returnStatus = attackUnit(startRow, startCol, endRow, endCol, player);
                 if (!returnStatus.getSuccessStatus()) {
                     System.out.println(returnStatus.getErrorMsg());
                 }
@@ -118,6 +119,8 @@ public class GameController {
                 if (!returnStatus.getSuccessStatus()) {
                     System.out.println(returnStatus.getErrorMsg());
                 }
+            } else if (input.equals("show")) {
+                System.out.println(battlefield.gridToString());
             } else {
                 System.out.println("Could not parse input");
             }
@@ -148,10 +151,13 @@ public class GameController {
         return new HeavenReturnStatus(true);
     }
 
-    private HeavenReturnStatus moveUnit(int startRow, int startCol, int endRow, int endCol) {
+    private HeavenReturnStatus moveUnit(int startRow, int startCol, int endRow, int endCol, Player player) {
         Unit unitToMove = battlefield.getUnitAtPosition(startRow, startCol);
         if (unitToMove == null) {
             return new HeavenReturnStatus(false, "Could not find unit at position (" + startRow + "," + startCol);
+        }
+        if (unitToMove.getOwner() != player) {
+            return new HeavenReturnStatus(false, "Cannot move unowned unit");
         }
         if (unitToMove.hasMoved()) {
             return new HeavenReturnStatus(false, "Unit has already moved");
@@ -171,11 +177,14 @@ public class GameController {
         }
     }
 
-    private HeavenReturnStatus attackUnit(int attackerRow, int attackerCol, int defenderRow, int defenderCol) {
+    private HeavenReturnStatus attackUnit(int attackerRow, int attackerCol, int defenderRow, int defenderCol, Player player) {
         Unit attacker = battlefield.getUnitAtPosition(attackerRow, attackerCol);
         Unit defender = battlefield.getUnitAtPosition(defenderRow, defenderCol);
         if (attacker == null || defender == null ) {
             return new HeavenReturnStatus(false, "Could not find both an attacking unit and defending unit");
+        }
+        if (attacker.getOwner() != player) {
+            return new HeavenReturnStatus(false, "Cannot attack with unowned unit");
         }
         if (attacker.getOwner() == defender.getOwner()) {
             return new HeavenReturnStatus(false, "Cannot attack friendly units");

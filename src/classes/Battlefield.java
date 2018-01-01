@@ -8,16 +8,24 @@ import java.util.ArrayList;
 public class Battlefield {
     private int width;
     private int length;
-    private ArrayList<Unit> units;
     private ArrayList<Structure> structures;
-    private Unit[][] grid;
+    private Square[][] grid;
 
     public Battlefield(BattlefieldSpecification battlefieldSpecification) {
         this.width = battlefieldSpecification.getWidth();
         this.length = battlefieldSpecification.getLength();
-        this.units = new ArrayList<>();
-        this.grid = new Unit[length][width];
+        this.grid = new Square[length][width];
+
+        for (int r = 0; r < length; r++) {
+            for (int c = 0; c < width; c++) {
+                grid[r][c] = new Square(r, c);
+            }
+        }
+
         this.structures = battlefieldSpecification.getStructures();
+        for (Structure structure : structures) {
+            grid[structure.getRow()][structure.getCol()].setStructureOnSquare(structure);
+        }
     }
 
     public ArrayList<Structure> getStructures() {
@@ -26,8 +34,7 @@ public class Battlefield {
 
     public HeavenReturnStatus addUnit(Unit unit, int row, int col) {
         try {
-            units.add(unit);
-            grid[row][col] = unit;
+            grid[row][col].setUnitOnSquare(unit);
             return new HeavenReturnStatus(true);
         } catch (Exception e) {
             return new HeavenReturnStatus(false, "Could not add unit to battlefield: " + e);
@@ -47,7 +54,7 @@ public class Battlefield {
         if (row < 0 || row >= this.length || col < 0 || col >= this.width) {
             return null;
         } else {
-            return grid[row][col];
+            return grid[row][col].getUnitOnSquare();
         }
     }
 
@@ -71,21 +78,19 @@ public class Battlefield {
     public String gridToString() {
         //TODO: Update to include structures
         StringBuilder builder = new StringBuilder();
-        for (Unit[] row : grid) {
-            for (Unit unit : row) {
-                if (unit == null) {
-                    builder.append("-");
-                    break;
-                }
-                builder.append(unit.getUnitType().getIdentifier());
+        for (Square[] row : grid) {
+            for (Square square : row) {
+                builder.append(square.toString());
             }
+            builder.append("\n");
         }
         return builder.toString();
     }
 
     public HeavenReturnStatus resetUnitActivity() {
-        for (Unit[] row : grid) {
-            for (Unit unit : row) {
+        for (Square[] row : grid) {
+            for (Square square : row) {
+                Unit unit = square.getUnitOnSquare();
                 unit.setAttacked(false);
                 unit.setMoved(false);
             }

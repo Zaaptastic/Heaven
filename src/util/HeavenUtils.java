@@ -1,6 +1,7 @@
 package util;
 
 import classes.Battlefield;
+import classes.Structure;
 import classes.Unit;
 import unitTypes.Artillery;
 import unitTypes.Cavalry;
@@ -24,6 +25,39 @@ public class HeavenUtils {
         unitTypes.add(new Artillery());
         unitTypes.add(new Cavalry());
         return unitTypes;
+    }
+
+    public static String getStructureIdentifier(Structure structure) {
+        HeavenConstants.StructureType structureType = structure.getStructureType();
+        if (structureType == HeavenConstants.StructureType.CAPITAL) {
+            return "*";
+        } else if (structureType == HeavenConstants.StructureType.FACTORY) {
+            return "#";
+        } else if (structureType == HeavenConstants.StructureType.CITY) {
+            return "$";
+        } else {
+            return "X";
+        }
+    }
+
+    public static String getStructureOwnerIdentifier(Structure structure) {
+        if (structure.getOwner() == HeavenConstants.Player.PLAYER_ONE) {
+            return "1";
+        } else if (structure.getOwner() == HeavenConstants.Player.PLAYER_TWO) {
+            return "2";
+        } else {
+            return "X";
+        }
+    }
+
+    public static String getUnitOwnerIdentifier(Unit unit) {
+        if (unit.getOwner() == HeavenConstants.Player.PLAYER_ONE) {
+            return "1";
+        } else if (unit.getOwner() == HeavenConstants.Player.PLAYER_TWO) {
+            return "2";
+        } else {
+            return "X";
+        }
     }
 
     public static HashMap<Integer, Integer> findLegalMoves(Battlefield battlefield, Unit unit, int row, int col) {
