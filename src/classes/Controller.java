@@ -16,6 +16,8 @@ public class Controller {
             endOfTurnStatus = gameController.nextTurn();
         }
 
+        System.out.println(gameController.getGameLog());
+
         return endOfTurnStatus;
     }
 

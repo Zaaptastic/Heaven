@@ -22,6 +22,8 @@ public class GameController {
     private int turnCount;
     private HashMap<Player, Integer> playerFunds;
 
+    private StringBuilder gameLog;
+
     public GameController(BattlefieldSpecification battlefieldSpecification) {
         turnCount = 0;
         battlefield = new Battlefield(battlefieldSpecification);
@@ -36,10 +38,14 @@ public class GameController {
         for (UnitType unitType : allUnitTypes) {
             unitTypes.put(unitType.getIdentifier(), unitType);
         }
+
+        gameLog = new StringBuilder();
     }
 
     public HeavenReturnStatus nextTurn() {
         turnCount++;
+        gameLog.append("-------------------------- Turn " + turnCount + " --------------------------\n");
+        gameLog.append("~~~~~ Player One ~~~~~~\n");
         HeavenReturnStatus returnStatus = nextTurn(Player.PLAYER_ONE);
         if (returnStatus.getEvent() == Event.CAPITAL_CAPTURE) {
             return returnStatus;
@@ -47,6 +53,7 @@ public class GameController {
             return returnStatus;
         }
 
+        gameLog.append("~~~~~ Player Two ~~~~~\n");
         returnStatus = nextTurn(Player.PLAYER_TWO);
         if (returnStatus.getEvent() == Event.CAPITAL_CAPTURE) {
             return returnStatus;
@@ -55,6 +62,10 @@ public class GameController {
         }
 
         return battlefield.resetUnitActivity();
+    }
+
+    public String getGameLog() {
+        return gameLog.toString();
     }
 
     private HeavenReturnStatus nextTurn(Player player) {
@@ -94,6 +105,7 @@ public class GameController {
                 if (!returnStatus.getSuccessStatus()) {
                     System.out.println(returnStatus.getErrorMsg());
                 }
+                gameLog.append(input + " -> " + endRow + "," + endCol + "\n");
             } else if (input.startsWith("a")) {
                 // Attempting to attack another unit.
                 String combinedCoords = input.substring(1, input.length());
@@ -108,6 +120,7 @@ public class GameController {
                 if (!returnStatus.getSuccessStatus()) {
                     System.out.println(returnStatus.getErrorMsg());
                 }
+                gameLog.append(input + " -> " + endRow + "," + endCol + "\n");
             } else if (input.startsWith("c")) {
                 // Attempting to create unit at structure.
                 String coords = input.substring(1, input.length()).split(":")[0];
@@ -119,6 +132,7 @@ public class GameController {
                 if (!returnStatus.getSuccessStatus()) {
                     System.out.println(returnStatus.getErrorMsg());
                 }
+                gameLog.append(input);
             } else if (input.equals("show")) {
                 System.out.println(battlefield.gridToString());
             } else {

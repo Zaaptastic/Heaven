@@ -76,8 +76,7 @@ public class HeavenUtils {
         // Add origin to search space to begin alg. However this is not a valid attack square
         searchSpace.add(new SearchCoordinate(row, col, 0));
 
-        // minimumDistance = 1 so that we do not add the Origin, allowing a unit to attack itself.
-        // TODO: Minimum Distances other than 1
+        // minimumDistance > 0 so that we do not add the Origin, allowing a unit to attack itself.
         return iterativeGridSearch(battlefield, searchSpace, maxAttackRange, minAttackRange);
     }
 
