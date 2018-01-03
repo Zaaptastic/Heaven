@@ -41,6 +41,8 @@ public class GameController {
     private VBox infoBox;
 
     private Player currentPlayer;
+    private int currentSelectedRow;
+    private int currentSelectedCol;
 
     public GameController(BattlefieldSpecification battlefieldSpecification, Stage stage) {
         this.turnCount = 0;
@@ -58,6 +60,8 @@ public class GameController {
         this.gameLog = new StringBuilder();
         this.stage = stage;
         this.currentPlayer = Player.PLAYER_ONE;
+        this.currentSelectedRow = 0;
+        this.currentSelectedCol = 0;
         setupGui(null);
     }
 
@@ -176,6 +180,7 @@ public class GameController {
      * |---------------------|
      */
     private void setupGui(ArrayList<SearchCoordinate> selection) {
+        //TODO: Better way to refresh the grid, or at least a way to save the selected square
         this.gameInfoLabel = new Label(getGameInfoText());
         squareInfoLabel = new Label("\n\n\n\n");
         buttonsBox = new VBox();
@@ -216,11 +221,16 @@ public class GameController {
     }
 
     private VBox gridToBox(Square[][] grid, ArrayList<SearchCoordinate> selection) {
-        VBox boxOfRows = new VBox();
+        Button invisibleButton = new Button();
+        invisibleButton.setOpacity(0.0);
+        VBox boxOfRows = new VBox(invisibleButton);
         for (int r = 0; r < grid.length; r++) {
             HBox singleRow = new HBox();
             for (int c = 0; c < grid[r].length; c++) {
                 Button buttonToAdd = createGridButtonForSquare(grid[r][c]);
+                if (r == currentSelectedRow && c == currentSelectedCol) {
+                    buttonToAdd.setDefaultButton(true);
+                }
                 if (selection != null && isSearchCoordinateInSelection(selection, r, c)) {
                     buttonToAdd.setOpacity(0.5);
                 }
@@ -237,9 +247,11 @@ public class GameController {
         //TODO: Fix dimensions of button and improve buttonText
 
         newButton.setOnAction(value -> {
+            currentSelectedRow = square.getRow();
+            currentSelectedCol = square.getCol();
+            setupGui(null);
             squareInfoLabel.setText(square.getFullInfo());
             createActionButtonsForSquare(square);
-            gridBox = gridToBox(battlefield.getGrid(), null);
         });
 
         return newButton;
@@ -376,11 +388,14 @@ public class GameController {
      *   -Updated currentPlayer
      *   -Redraw the Gui and update info
      *   -Increment turnCount
+     *   -Clear currentSelectedSquare values
      * @return
      */
     private HeavenReturnStatus endTurn() {
         //TODO: Perhaps in the future this only needs to flip units belong to the previous player.
         battlefield.resetUnitActivity();
+        currentSelectedRow = 0;
+        currentSelectedCol = 0;
 
         if (currentPlayer == Player.PLAYER_ONE) {
             currentPlayer = Player.PLAYER_TWO;
