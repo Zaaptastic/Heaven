@@ -1,7 +1,6 @@
 package classes;
 
 import battlefields.BattlefieldSpecification;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -17,7 +16,6 @@ import util.SearchCoordinate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static util.HeavenUtils.findLegalAttacks;
 import static util.HeavenUtils.findLegalMoves;
@@ -30,6 +28,11 @@ public class GameController {
     private int turnCount;
     private HashMap<Player, Integer> playerFunds;
 
+    private Player currentPlayer;
+    private int currentSelectedRow;
+    private int currentSelectedCol;
+
+    // GUI-related fields
     private StringBuilder gameLog;
     private Stage stage;
     private Scene scene;
@@ -39,10 +42,6 @@ public class GameController {
     private Label debugLabel;
     private VBox gridBox;
     private VBox infoBox;
-
-    private Player currentPlayer;
-    private int currentSelectedRow;
-    private int currentSelectedCol;
 
     public GameController(BattlefieldSpecification battlefieldSpecification, Stage stage) {
         this.turnCount = 0;
@@ -60,8 +59,8 @@ public class GameController {
         this.gameLog = new StringBuilder();
         this.stage = stage;
         this.currentPlayer = Player.PLAYER_ONE;
-        this.currentSelectedRow = 0;
-        this.currentSelectedCol = 0;
+        this.currentSelectedRow = -1;
+        this.currentSelectedCol = -1;
         setupGui(null);
     }
 
@@ -142,35 +141,13 @@ public class GameController {
             } else {
                 gameInfoLabel.setText("Could not parse input");
             }
-        }
-
-        // At the end of every turn, recalculate Structure health for capturing/restoring.
-        for (Structure structure : battlefield.getStructures()) {
-            Unit unit = battlefield.getUnitAtPosition(structure.getRow(), structure.getCol());
-            if (unit == null) {
-                structure.increaseHealth();
-                continue;
-            }
-
-            if (unit.getOwner() == structure.getOwner()) {
-                structure.increaseHealth();
-                continue;
-            }
-
-            if (unit.getUnitType().getIdentifier().equals("I")) {
-                HeavenReturnStatus returnStatus = structure.decreaseHealth(player, unit.getCurrentHealth());
-                if (returnStatus.getEvent() == Event.CAPITAL_CAPTURE) {
-                    // GAME OVER
-                    return returnStatus;
-                }
-            }
         }*/
 
         return new HeavenReturnStatus(true);
     }
 
     /**
-     * ----------------------|
+     * |---------------------|
      * |             |       | <------Info Panel
      * |             |       |
      * |             |-------|
@@ -180,11 +157,19 @@ public class GameController {
      * |---------------------|
      */
     private void setupGui(ArrayList<SearchCoordinate> selection) {
-        //TODO: Better way to refresh the grid, or at least a way to save the selected square
         this.gameInfoLabel = new Label(getGameInfoText());
         squareInfoLabel = new Label("\n\n\n\n");
         buttonsBox = new VBox();
-        createActionButtonsForSquare(null);
+        Square selectedSquare = null;
+        if (currentSelectedRow != -1 && currentSelectedCol != -1) {
+            selectedSquare = battlefield.getGrid()[currentSelectedRow][currentSelectedCol];
+            squareInfoLabel.setText(selectedSquare.getFullInfo());
+            createActionButtonsForSquare(selectedSquare);
+        } else {
+            squareInfoLabel.setText("\n\n\n\n");
+            createActionButtonsForSquare(null);
+        }
+
         debugLabel = new Label("");
 
         gridBox = gridToBox(battlefield.getGrid(), selection);
@@ -192,7 +177,7 @@ public class GameController {
 
         HBox mainBox = new HBox(gridBox, infoBox);
 
-        this.scene = new Scene(mainBox, 1000, 600);
+        this.scene = new Scene(mainBox, 1200, 600);
 
         stage.setTitle("Heaven Game Stage");
         stage.setScene(scene);
@@ -250,7 +235,6 @@ public class GameController {
             currentSelectedRow = square.getRow();
             currentSelectedCol = square.getCol();
             setupGui(null);
-            squareInfoLabel.setText(square.getFullInfo());
             createActionButtonsForSquare(square);
         });
 
@@ -394,8 +378,8 @@ public class GameController {
     private HeavenReturnStatus endTurn() {
         //TODO: Perhaps in the future this only needs to flip units belong to the previous player.
         battlefield.resetUnitActivity();
-        currentSelectedRow = 0;
-        currentSelectedCol = 0;
+        currentSelectedRow = -1;
+        currentSelectedCol = -1;
 
         // Recalculate structure health
         for (Structure structure : battlefield.getStructures()) {
