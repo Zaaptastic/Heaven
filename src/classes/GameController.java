@@ -1,6 +1,7 @@
 package classes;
 
 import battlefields.BattlefieldSpecification;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -32,6 +33,9 @@ public class GameController {
     private Label gameInfoLabel;
     private Label squareInfoLabel;
     private VBox buttonsBox;
+    private Label debugLabel;
+    private VBox gridBox;
+    private VBox infoBox;
 
     private Player currentPlayer;
 
@@ -51,7 +55,7 @@ public class GameController {
         this.gameLog = new StringBuilder();
         this.stage = stage;
         this.currentPlayer = Player.PLAYER_ONE;
-        setupGui();
+        setupGui(null);
     }
 
     public String getGameLog() {
@@ -168,16 +172,17 @@ public class GameController {
      * |             |       |
      * |---------------------|
      */
-    private void setupGui() {
+    private void setupGui(HashMap<Integer, Integer> selection) {
         this.gameInfoLabel = new Label(getGameInfoText());
         squareInfoLabel = new Label("\n\n\n\n");
         buttonsBox = new VBox();
         createActionButtonsForSquare(null);
+        debugLabel = new Label("");
 
-        VBox leftBox = gridToBox(battlefield.getGrid());
-        VBox rightBox = new VBox(gameInfoLabel, squareInfoLabel, buttonsBox);
+        gridBox = gridToBox(battlefield.getGrid(), selection);
+        infoBox = new VBox(gameInfoLabel, squareInfoLabel, buttonsBox, debugLabel);
 
-        HBox mainBox = new HBox(leftBox, rightBox);
+        HBox mainBox = new HBox(gridBox, infoBox);
 
         this.scene = new Scene(mainBox, 1000, 600);
 
@@ -207,12 +212,17 @@ public class GameController {
         return stringBuilder.toString();
     }
 
-    private VBox gridToBox(Square[][] grid) {
+    private VBox gridToBox(Square[][] grid, HashMap<Integer, Integer> selection) {
+        debugLabel.setText("Drawing grid for selection: " + selection);
         VBox boxOfRows = new VBox();
         for (int r = 0; r < grid.length; r++) {
             HBox singleRow = new HBox();
             for (int c = 0; c < grid[r].length; c++) {
-                singleRow.getChildren().add(createGridButtonForSquare(grid[r][c]));
+                Button buttonToAdd = createGridButtonForSquare(grid[r][c]);
+                if (selection != null && selection.keySet().contains(r) && selection.get(r) == c) {
+                    buttonToAdd.setOpacity(0.5);
+                }
+                singleRow.getChildren().add(buttonToAdd);
             }
             boxOfRows.getChildren().add(singleRow);
         }
@@ -227,6 +237,7 @@ public class GameController {
         newButton.setOnAction(value -> {
             squareInfoLabel.setText(square.getFullInfo());
             createActionButtonsForSquare(square);
+            gridBox = gridToBox(battlefield.getGrid(), null);
         });
 
         return newButton;
@@ -244,10 +255,22 @@ public class GameController {
             return;
         } else if (square.getUnitOnSquare() != null) {
             Button moveButton = new Button("Move");
+            moveButton.setOnAction(value -> {
+                HashMap<Integer, Integer> selection = HeavenUtils.findLegalMoves(battlefield, square.getUnitOnSquare(),square.getRow(), square.getCol());
+                setupGui(selection);
+            });
             Button attackButton = new Button("Attack");
+            attackButton.setOnAction(value -> {
+                HashMap<Integer, Integer> selection = HeavenUtils.findLegalAttacks(battlefield, square.getUnitOnSquare(),square.getRow(), square.getCol());
+                setupGui(selection);
+            });
             buttonsBox.getChildren().addAll(moveButton, attackButton);
         } else if (square.getStructureOnSquare() != null && square.getStructureOnSquare().getStructureType() == StructureType.FACTORY) {
             Button createButton = new Button("Create");
+            createButton.setOnAction(value -> {
+                createUnit(square.getRow(), square.getCol(), "I");
+                setupGui(null);
+            });
             buttonsBox.getChildren().add(createButton);
         }
     }
@@ -378,7 +401,7 @@ public class GameController {
             playerFunds.replace(Player.PLAYER_TWO, totalIncomePlayerTwo);
         }
 
-        setupGui();
+        setupGui(null);
 
         return new HeavenReturnStatus(true);
     }

@@ -53,7 +53,7 @@ public class Square {
             stringBuilder.append("\nUnit: None");
         } else {
             stringBuilder.append(String.format("\nUnit: %s's %s [HP:%d/%d ATK:%d DEF:%d SPEED:%d RANGE:%d-%d]", unitOnSquare.getOwner(),
-                    unitOnSquare.getUnitType(), unitOnSquare.getCurrentHealth(), unitOnSquare.getMaximumHealth(),
+                    unitOnSquare.getUnitType().getName(), unitOnSquare.getCurrentHealth(), unitOnSquare.getMaximumHealth(),
                     unitOnSquare.getAttackValue(), unitOnSquare.getDefenseValue(), unitOnSquare.getMovementSpeed(),
                     unitOnSquare.getMinimumRange(), unitOnSquare.getMinimumRange()));
         }
