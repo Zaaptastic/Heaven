@@ -61,11 +61,13 @@ public class Battlefield {
         }
     }
 
-    public boolean isOpenPosition(int row, int col) {
+    public boolean isOpenPosition(int row, int col, boolean ignoreUnits) {
         if (row < 0 || row >= this.length || col < 0 || col >= this.width) {
             return false;
-        } else {
+        } else if (!ignoreUnits){
             return getUnitAtPosition(row, col) == null;
+        } else {
+            return true;
         }
     }
 

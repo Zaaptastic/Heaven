@@ -12,13 +12,16 @@ import unitTypes.UnitType;
 import util.HeavenConstants.*;
 import util.HeavenReturnStatus;
 import util.HeavenUtils;
+import util.SearchCoordinate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static util.HeavenUtils.findLegalAttacks;
 import static util.HeavenUtils.findLegalMoves;
+import static util.HeavenUtils.isSearchCoordinateInSelection;
 
 public class GameController {
     private Battlefield battlefield;
@@ -172,7 +175,7 @@ public class GameController {
      * |             |       |
      * |---------------------|
      */
-    private void setupGui(HashMap<Integer, Integer> selection) {
+    private void setupGui(ArrayList<SearchCoordinate> selection) {
         this.gameInfoLabel = new Label(getGameInfoText());
         squareInfoLabel = new Label("\n\n\n\n");
         buttonsBox = new VBox();
@@ -212,14 +215,13 @@ public class GameController {
         return stringBuilder.toString();
     }
 
-    private VBox gridToBox(Square[][] grid, HashMap<Integer, Integer> selection) {
-        debugLabel.setText("Drawing grid for selection: " + selection);
+    private VBox gridToBox(Square[][] grid, ArrayList<SearchCoordinate> selection) {
         VBox boxOfRows = new VBox();
         for (int r = 0; r < grid.length; r++) {
             HBox singleRow = new HBox();
             for (int c = 0; c < grid[r].length; c++) {
                 Button buttonToAdd = createGridButtonForSquare(grid[r][c]);
-                if (selection != null && selection.keySet().contains(r) && selection.get(r) == c) {
+                if (selection != null && isSearchCoordinateInSelection(selection, r, c)) {
                     buttonToAdd.setOpacity(0.5);
                 }
                 singleRow.getChildren().add(buttonToAdd);
@@ -256,12 +258,12 @@ public class GameController {
         } else if (square.getUnitOnSquare() != null) {
             Button moveButton = new Button("Move");
             moveButton.setOnAction(value -> {
-                HashMap<Integer, Integer> selection = HeavenUtils.findLegalMoves(battlefield, square.getUnitOnSquare(),square.getRow(), square.getCol());
+                ArrayList<SearchCoordinate> selection = HeavenUtils.findLegalMoves(battlefield, square.getUnitOnSquare(),square.getRow(), square.getCol());
                 setupGui(selection);
             });
             Button attackButton = new Button("Attack");
             attackButton.setOnAction(value -> {
-                HashMap<Integer, Integer> selection = HeavenUtils.findLegalAttacks(battlefield, square.getUnitOnSquare(),square.getRow(), square.getCol());
+                ArrayList<SearchCoordinate> selection = HeavenUtils.findLegalAttacks(battlefield, square.getUnitOnSquare(),square.getRow(), square.getCol());
                 setupGui(selection);
             });
             buttonsBox.getChildren().addAll(moveButton, attackButton);
@@ -291,8 +293,8 @@ public class GameController {
             return new HeavenReturnStatus(false, "Ranged units cannot move and attack on the same turn");
         }
 
-        Map<Integer, Integer> validMoves = findLegalMoves(battlefield, unitToMove, startRow, startCol);
-        if (validMoves.containsKey(endRow) && validMoves.containsValue(endCol)) {
+        ArrayList<SearchCoordinate> validMoves = findLegalMoves(battlefield, unitToMove, startRow, startCol);
+        if (isSearchCoordinateInSelection(validMoves, endRow, endCol)) {
             battlefield.removeUnit(startRow, startCol);
             battlefield.addUnit(unitToMove, endRow, endCol);
             unitToMove.setMoved(true);
@@ -321,8 +323,8 @@ public class GameController {
             return new HeavenReturnStatus(false, "Ranged units cannot move and attack on the same turn");
         }
 
-        Map<Integer, Integer> validAttacks = findLegalAttacks(battlefield, attacker, attackerRow, attackerCol);
-        if (validAttacks.containsKey(defenderRow) && validAttacks.containsValue(defenderCol)) {
+        ArrayList<SearchCoordinate> validAttacks = findLegalAttacks(battlefield, attacker, attackerRow, attackerCol);
+        if (isSearchCoordinateInSelection(validAttacks, defenderRow, defenderCol)) {
             HeavenReturnStatus returnStatus = attacker.attackEnemyUnit(defender);
             if (attacker.getCurrentHealth() <= 0) {
                 battlefield.removeUnit(attackerRow, attackerCol);
@@ -347,7 +349,7 @@ public class GameController {
         if (structure.getOwner() != currentPlayer) {
             return new HeavenReturnStatus(false, "Cannot create unit on unowned structure");
         }
-        if (!battlefield.isOpenPosition(row, col)) {
+        if (!battlefield.isOpenPosition(row, col, false)) {
             return new HeavenReturnStatus(false, "Cannot create unit on occupied structure");
         }
         if (!playerFunds.keySet().contains(currentPlayer)) {

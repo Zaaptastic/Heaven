@@ -8,10 +8,7 @@ import unitTypes.Cavalry;
 import unitTypes.Infantry;
 import unitTypes.UnitType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 public class HeavenUtils {
     public static int calculateDamage(int attacker, int defender) {
@@ -60,31 +57,40 @@ public class HeavenUtils {
         }
     }
 
-    public static HashMap<Integer, Integer> findLegalMoves(Battlefield battlefield, Unit unit, int row, int col) {
+    public static boolean isSearchCoordinateInSelection(ArrayList<SearchCoordinate> selection, int row, int col) {
+        for (SearchCoordinate searchCoordinate : selection) {
+            if (searchCoordinate.getRow() == row && searchCoordinate.getCol() == col) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static ArrayList<SearchCoordinate> findLegalMoves(Battlefield battlefield, Unit unit, int row, int col) {
         int maxMovementDistance = unit.getMovementSpeed();
-        Queue<SearchCoordinate> searchSpace = new LinkedList<>();
+        Stack<SearchCoordinate> searchSpace = new Stack<>();
         // Add origin to search space to begin alg. Convenient since this is always a valid square.
         searchSpace.add(new SearchCoordinate(row, col, 0));
 
-        return iterativeGridSearch(battlefield, searchSpace, maxMovementDistance, 0);
+        return iterativeGridSearch(battlefield, searchSpace, maxMovementDistance, 0, false);
     }
 
-    public static HashMap<Integer, Integer> findLegalAttacks(Battlefield battlefield, Unit unit, int row, int col) {
+    public static ArrayList<SearchCoordinate> findLegalAttacks(Battlefield battlefield, Unit unit, int row, int col) {
         int maxAttackRange = unit.getRange();
         int minAttackRange = unit.getMinimumRange();
-        Queue<SearchCoordinate> searchSpace = new LinkedList<>();
+        Stack<SearchCoordinate> searchSpace = new Stack<>();
         // Add origin to search space to begin alg. However this is not a valid attack square
         searchSpace.add(new SearchCoordinate(row, col, 0));
 
         // minimumDistance > 0 so that we do not add the Origin, allowing a unit to attack itself.
-        return iterativeGridSearch(battlefield, searchSpace, maxAttackRange, minAttackRange);
+        return iterativeGridSearch(battlefield, searchSpace, maxAttackRange, minAttackRange, true);
     }
 
-    private static HashMap<Integer, Integer> iterativeGridSearch(Battlefield battlefield, Queue<SearchCoordinate> searchSpace, int maxDist, int minDist) {
+    private static ArrayList<SearchCoordinate> iterativeGridSearch(Battlefield battlefield, Stack<SearchCoordinate> searchSpace, int maxDist, int minDist, boolean ignoreUnits) {
         ArrayList<SearchCoordinate> solutions = new ArrayList<>();
 
         while (!searchSpace.isEmpty()) {
-            SearchCoordinate validMove = searchSpace.remove();
+            SearchCoordinate validMove = searchSpace.pop();
             int currentRow = validMove.getRow();
             int currentCol = validMove.getCol();
             if (validMove.getDistanceFromOrigin() >= minDist) {
@@ -93,67 +99,40 @@ public class HeavenUtils {
             }
             int currentDistanceFromOrigin = validMove.getDistanceFromOrigin();
 
-            // Check each adjacent square, if it is not a solution and not already on the Queue, add it to the Queue.
-            // TODO: Remove duplicate work. Don't need to check squares closer to the Origin (going backwards).
             if (currentDistanceFromOrigin == maxDist) {
                 continue;
             }
 
             SearchCoordinate northCoordinate = new SearchCoordinate(currentRow - 1, currentCol, currentDistanceFromOrigin + 1);
-            SearchCoordinate southCoordinate = new SearchCoordinate(currentRow +1, currentCol, currentDistanceFromOrigin + 1);
-            SearchCoordinate westCoordinate = new SearchCoordinate(currentRow, currentCol-1, currentDistanceFromOrigin + 1);
-            SearchCoordinate eastCoordinate = new SearchCoordinate(currentRow, currentCol+1, currentDistanceFromOrigin + 1);
+            SearchCoordinate southCoordinate = new SearchCoordinate(currentRow + 1, currentCol, currentDistanceFromOrigin + 1);
+            SearchCoordinate westCoordinate = new SearchCoordinate(currentRow, currentCol - 1, currentDistanceFromOrigin + 1);
+            SearchCoordinate eastCoordinate = new SearchCoordinate(currentRow, currentCol + 1, currentDistanceFromOrigin + 1);
 
             //North
-            if (battlefield.isOpenPosition(currentRow-1, currentCol) && !solutions.contains(northCoordinate)
-                    && !searchSpace.contains(northCoordinate)) {
-                searchSpace.add(northCoordinate);
+            if (battlefield.isOpenPosition(currentRow-1, currentCol, ignoreUnits) && !solutions.contains(northCoordinate)) {
+                searchSpace.push(northCoordinate);
             }
             //South
-            if (battlefield.isOpenPosition(currentRow+1, currentCol)&& !solutions.contains(southCoordinate)
-                    && !searchSpace.contains(southCoordinate)) {
-                searchSpace.add(southCoordinate);
+            if (battlefield.isOpenPosition(currentRow+1, currentCol, ignoreUnits)&& !solutions.contains(southCoordinate)) {
+                searchSpace.push(southCoordinate);
             }
             //West
-            if (battlefield.isOpenPosition(currentRow, currentCol-1)&& !solutions.contains(westCoordinate)
-                    && !searchSpace.contains(westCoordinate)) {
-                searchSpace.add(westCoordinate);
+            if (battlefield.isOpenPosition(currentRow, currentCol-1, ignoreUnits)&& !solutions.contains(westCoordinate)) {
+                searchSpace.push(westCoordinate);
             }
             //East
-            if (battlefield.isOpenPosition(currentRow, currentCol+1)&& !solutions.contains(eastCoordinate)
-                    && !searchSpace.contains(eastCoordinate)) {
-                searchSpace.add(eastCoordinate);
+            if (battlefield.isOpenPosition(currentRow, currentCol+1, ignoreUnits)&& !solutions.contains(eastCoordinate)) {
+                searchSpace.push(eastCoordinate);
             }
         }
 
-        HashMap<Integer, Integer> toReturn = new HashMap<>();
+        //TODO: HashMap is a really bad return structure here, need to find something better. Need a list of tuples, there must be an existing structure.
+        return solutions;
+        /*HashMap<Integer, Integer> toReturn = new HashMap<>();
         for (SearchCoordinate solution : solutions) {
             toReturn.put(solution.getRow(), solution.getCol());
         }
-        return toReturn;
-    }
-}
-
-class SearchCoordinate {
-    private int row;
-    private int col;
-    private int distanceFromOrigin;
-
-    public SearchCoordinate(int row, int col, int distanceFromOrigin) {
-        this.row = row;
-        this.col = col;
-        this.distanceFromOrigin = distanceFromOrigin;
-    }
-
-    public int getRow() {
-        return row;
-    }
-
-    public int getCol() {
-        return col;
-    }
-
-    public int getDistanceFromOrigin() {
-        return distanceFromOrigin;
+        System.out.println(toReturn);
+        return toReturn;*/
     }
 }
