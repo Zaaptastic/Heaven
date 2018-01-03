@@ -1,6 +1,8 @@
 package classes;
 
 import battlefields.BattlefieldSpecification;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import util.HeavenReturnStatus;
 
 import java.util.ArrayList;
@@ -84,6 +86,15 @@ public class Battlefield {
             builder.append("\n");
         }
         return builder.toString();
+    }
+
+    public VBox gridToBox() {
+        //TODO: figure out a better way to do this
+        HBox row1 = new HBox();
+
+
+        VBox boxOfRows = new VBox();
+        return null;
     }
 
     public HeavenReturnStatus resetUnitActivity() {

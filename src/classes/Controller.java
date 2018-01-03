@@ -1,26 +1,32 @@
 package classes;
 
 import battlefields.TutorialIsland;
+import javafx.scene.control.Label;
+import javafx.stage.Stage;
 import util.HeavenConstants;
 import util.HeavenReturnStatus;
 
 public class Controller {
+    private Label label;
 
-    public HeavenReturnStatus startNewGame() {
+    public Controller(Label label) {
+        this.label = label;
+    }
+
+    public HeavenReturnStatus startNewGame(Stage gameStage) {
         // TODO: Allow selection of BattlefieldSpecification
-        GameController gameController = new GameController(new TutorialIsland());
+        GameController gameController = new GameController(new TutorialIsland(), gameStage);
 
         HeavenReturnStatus endOfTurnStatus = new HeavenReturnStatus(true);
 
-        System.out.println("LOG: Starting game");
         while(endOfTurnStatus.getSuccessStatus()) {
+            label.setText("In loop");
             endOfTurnStatus = gameController.nextTurn();
-            if (endOfTurnStatus.getEvent() == HeavenConstants.Event.CAPITAL_CAPTURE) {
+            break;
+            /*if (endOfTurnStatus.getEvent() == HeavenConstants.Event.CAPITAL_CAPTURE) {
                 break;
-            }
+            }*/
         }
-
-        System.out.println(gameController.getGameLog());
 
         return endOfTurnStatus;
     }

@@ -1,6 +1,13 @@
 package classes;
 
 import battlefields.BattlefieldSpecification;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import unitTypes.UnitType;
 import util.HeavenConstants.*;
 import util.HeavenReturnStatus;
@@ -13,7 +20,10 @@ import java.util.Scanner;
 
 import static util.HeavenUtils.findLegalAttacks;
 import static util.HeavenUtils.findLegalMoves;
-
+/*
+    <applet code="TestRunner" width=800 height=600>
+    </applet>
+ */
 public class GameController {
     private Battlefield battlefield;
     private Scanner listener;
@@ -23,30 +33,40 @@ public class GameController {
     private HashMap<Player, Integer> playerFunds;
 
     private StringBuilder gameLog;
+    private Stage stage;
+    private Scene scene;
+    private Label mainLabel;
 
-    public GameController(BattlefieldSpecification battlefieldSpecification) {
-        turnCount = 0;
-        battlefield = new Battlefield(battlefieldSpecification);
-        playerFunds = new HashMap<>();
-        playerFunds.put(Player.PLAYER_ONE, 0);
-        playerFunds.put(Player.PLAYER_TWO, 0);
+    public GameController(BattlefieldSpecification battlefieldSpecification, Stage stage) {
+        this.turnCount = 0;
+        this.battlefield = new Battlefield(battlefieldSpecification);
+        this.playerFunds = new HashMap<>();
+        this.playerFunds.put(Player.PLAYER_ONE, 0);
+        this.playerFunds.put(Player.PLAYER_TWO, 0);
 
-        listener = new Scanner(System.in);
+        this.listener = new Scanner(System.in);
 
-        unitTypes = new HashMap<>();
+        this.unitTypes = new HashMap<>();
         List<UnitType> allUnitTypes = HeavenUtils.getAllUnitTypes();
         for (UnitType unitType : allUnitTypes) {
-            unitTypes.put(unitType.getIdentifier(), unitType);
+            this.unitTypes.put(unitType.getIdentifier(), unitType);
         }
 
-        gameLog = new StringBuilder();
+        this.gameLog = new StringBuilder();
+        this.stage = stage;
+        this.mainLabel = new Label("Main Label");
+        setupGui();
     }
 
     public HeavenReturnStatus nextTurn() {
         turnCount++;
-        System.out.println("LOG: Beginning turn " + turnCount);
         gameLog.append("-------------------------- Turn " + turnCount + " --------------------------\n");
         gameLog.append("~~~~~ Player One ~~~~~~\n");
+        mainLabel.setText("In turn " + turnCount);
+
+        if (true) {
+            return new HeavenReturnStatus(true);
+        }
         HeavenReturnStatus returnStatus = nextTurn(Player.PLAYER_ONE);
         if (returnStatus.getEvent() == Event.CAPITAL_CAPTURE) {
             return returnStatus;
@@ -85,7 +105,7 @@ public class GameController {
         //TODO: Add turn history and logging
         while (!endOfTurn) {
             // Listen for inputs, executing each as a move, until the player declares end of his turn.
-            System.out.print("Temporary UI for making moves:\nend - End Turn\nmR,C:R,C - move unit to new position" +
+            mainLabel.setText("Temporary UI for making moves:\nend - End Turn\nmR,C:R,C - move unit to new position" +
                     "\naR,C:R,C - attack with unit to position\ncR,C:I - create unit at structure\n" +
                     "show - Show current battlefield state\n>");
             String input = listener.next();
@@ -104,7 +124,7 @@ public class GameController {
 
                 HeavenReturnStatus returnStatus = moveUnit(startRow, startCol, endRow, endCol, player);
                 if (!returnStatus.getSuccessStatus()) {
-                    System.out.println(returnStatus.getErrorMsg());
+                    mainLabel.setText(returnStatus.getErrorMsg());
                 }
                 gameLog.append(input + " -> " + endRow + "," + endCol + "\n");
             } else if (input.startsWith("a")) {
@@ -119,7 +139,7 @@ public class GameController {
 
                 HeavenReturnStatus returnStatus = attackUnit(startRow, startCol, endRow, endCol, player);
                 if (!returnStatus.getSuccessStatus()) {
-                    System.out.println(returnStatus.getErrorMsg());
+                    mainLabel.setText(returnStatus.getErrorMsg());
                 }
                 gameLog.append(input + " -> " + endRow + "," + endCol + "\n");
             } else if (input.startsWith("c")) {
@@ -131,13 +151,13 @@ public class GameController {
 
                 HeavenReturnStatus returnStatus = createUnit(row, col, identifier, player);
                 if (!returnStatus.getSuccessStatus()) {
-                    System.out.println(returnStatus.getErrorMsg());
+                    mainLabel.setText(returnStatus.getErrorMsg());
                 }
                 gameLog.append(input);
             } else if (input.equals("show")) {
-                System.out.println(battlefield.gridToString());
+                mainLabel.setText(battlefield.gridToString());
             } else {
-                System.out.println("Could not parse input");
+                mainLabel.setText("Could not parse input");
             }
         }
 
@@ -164,6 +184,33 @@ public class GameController {
         }
 
         return new HeavenReturnStatus(true);
+    }
+
+    /**
+     * ----------------------|
+     * |             |       | <------Info Panel
+     * |             |       |
+     * |             |-------|
+     * |             |       | <------Buttons
+     * |             |       |
+     * |             |       |
+     * |---------------------|
+     */
+    private void setupGui() {
+        Label grid = new Label(battlefield.gridToString());
+        Label info = new Label("Info");
+        Label buttons = new Label("buttons");
+
+        HBox leftBox = new HBox(grid);
+        VBox rightBox = new VBox(info, buttons);
+
+        HBox mainBox = new HBox(leftBox, rightBox);
+
+        this.scene = new Scene(mainBox, 800, 600);
+
+        stage.setTitle("Heaven Game Stage");
+        stage.setScene(scene);
+        stage.show();
     }
 
     private HeavenReturnStatus moveUnit(int startRow, int startCol, int endRow, int endCol, Player player) {
