@@ -15,7 +15,6 @@ import util.HeavenUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 import static util.HeavenUtils.findLegalAttacks;
 import static util.HeavenUtils.findLegalMoves;
@@ -34,6 +33,8 @@ public class GameController {
     private Label squareInfoLabel;
     private VBox buttonsBox;
 
+    private Player currentPlayer;
+
     public GameController(BattlefieldSpecification battlefieldSpecification, Stage stage) {
         this.turnCount = 0;
         this.battlefield = new Battlefield(battlefieldSpecification);
@@ -49,53 +50,32 @@ public class GameController {
 
         this.gameLog = new StringBuilder();
         this.stage = stage;
+        this.currentPlayer = Player.PLAYER_ONE;
         setupGui();
-    }
-
-    public HeavenReturnStatus nextTurn() {
-        turnCount++;
-        gameLog.append("-------------------------- Turn " + turnCount + " --------------------------\n");
-        gameLog.append("~~~~~ Player One ~~~~~~\n");
-
-        if (true) {
-            return new HeavenReturnStatus(true);
-        }
-        HeavenReturnStatus returnStatus = nextTurn(Player.PLAYER_ONE);
-        if (returnStatus.getEvent() == Event.CAPITAL_CAPTURE) {
-            return returnStatus;
-        } else if (!returnStatus.getSuccessStatus()) {
-            return returnStatus;
-        }
-
-        gameLog.append("~~~~~ Player Two ~~~~~\n");
-        returnStatus = nextTurn(Player.PLAYER_TWO);
-        if (returnStatus.getEvent() == Event.CAPITAL_CAPTURE) {
-            return returnStatus;
-        } else if (!returnStatus.getSuccessStatus()) {
-            return returnStatus;
-        }
-
-        return battlefield.resetUnitActivity();
     }
 
     public String getGameLog() {
         return gameLog.toString();
     }
 
-    private HeavenReturnStatus nextTurn(Player player) {
-        boolean endOfTurn = false;
-
-        // Beginning of each player's turn: calculate funds
-        int totalIncome = 0;
+    public HeavenReturnStatus initializeGame() {
+        turnCount++;
+        int totalIncomePlayerOne = playerFunds.get(Player.PLAYER_ONE);
+        int totalIncomePlayerTwo = playerFunds.get(Player.PLAYER_TWO);
         for (Structure structure : battlefield.getStructures()) {
-            if (structure.getOwner() == player) {
-                totalIncome += 1000;
+            if (structure.getOwner() == Player.PLAYER_ONE) {
+                totalIncomePlayerOne += 1000;
+            } else if (structure.getOwner() == Player.PLAYER_TWO) {
+                totalIncomePlayerTwo += 1000;
             }
         }
-        int updatedFunds = playerFunds.get(player) + totalIncome;
-        playerFunds.replace(player, updatedFunds);
+        playerFunds.replace(Player.PLAYER_ONE, totalIncomePlayerOne);
+        playerFunds.replace(Player.PLAYER_TWO, totalIncomePlayerTwo);
 
-        while (!endOfTurn) {
+        // Update Game Info
+        gameInfoLabel.setText(getGameInfoText());
+        // TODO: Debugging console.
+        /*while (!endOfTurn) {
             // Listen for inputs, executing each as a move, until the player declares end of his turn.
             gameInfoLabel.setText("Temporary UI for making moves:\nend - End Turn\nmR,C:R,C - move unit to new position" +
                     "\naR,C:R,C - attack with unit to position\ncR,C:I - create unit at structure\n" +
@@ -173,7 +153,7 @@ public class GameController {
                     return returnStatus;
                 }
             }
-        }
+        }*/
 
         return new HeavenReturnStatus(true);
     }
@@ -189,7 +169,7 @@ public class GameController {
      * |---------------------|
      */
     private void setupGui() {
-        this.gameInfoLabel = new Label(getGameInfoText(Player.PLAYER_ONE));
+        this.gameInfoLabel = new Label(getGameInfoText());
         squareInfoLabel = new Label("\n\n\n\n");
         buttonsBox = new VBox();
         createActionButtonsForSquare(null);
@@ -206,7 +186,7 @@ public class GameController {
         stage.show();
     }
 
-    private String getGameInfoText(Player player) {
+    private String getGameInfoText() {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("~~~Turn ");
@@ -214,12 +194,12 @@ public class GameController {
         stringBuilder.append("~~~");
         stringBuilder.append("\nPLAYER_ONE: ");
         stringBuilder.append(playerFunds.get(Player.PLAYER_ONE));
-        if (player == Player.PLAYER_ONE) {
+        if (currentPlayer == Player.PLAYER_ONE) {
             stringBuilder.append(" <---");
         }
         stringBuilder.append("\nPLAYER_TWO: ");
         stringBuilder.append(playerFunds.get(Player.PLAYER_TWO));
-        if (player == Player.PLAYER_TWO) {
+        if (currentPlayer == Player.PLAYER_TWO) {
             stringBuilder.append(" <---");
         }
         stringBuilder.append("\n\n");
@@ -253,7 +233,11 @@ public class GameController {
     }
 
     private void createActionButtonsForSquare(Square square) {
+        // TODO: Actions for all of these buttons
         Button endTurnButton = new Button("End Turn");
+        endTurnButton.setOnAction(value -> {
+            endTurn();
+        });
         buttonsBox.getChildren().remove(0, buttonsBox.getChildren().size());
         buttonsBox.getChildren().add(endTurnButton);
         if (square == null) {
@@ -269,12 +253,12 @@ public class GameController {
     }
 
 
-    private HeavenReturnStatus moveUnit(int startRow, int startCol, int endRow, int endCol, Player player) {
+    private HeavenReturnStatus moveUnit(int startRow, int startCol, int endRow, int endCol) {
         Unit unitToMove = battlefield.getUnitAtPosition(startRow, startCol);
         if (unitToMove == null) {
             return new HeavenReturnStatus(false, "Could not find unit at position (" + startRow + "," + startCol);
         }
-        if (unitToMove.getOwner() != player) {
+        if (unitToMove.getOwner() != currentPlayer) {
             return new HeavenReturnStatus(false, "Cannot move unowned unit");
         }
         if (unitToMove.hasMoved()) {
@@ -295,13 +279,13 @@ public class GameController {
         }
     }
 
-    private HeavenReturnStatus attackUnit(int attackerRow, int attackerCol, int defenderRow, int defenderCol, Player player) {
+    private HeavenReturnStatus attackUnit(int attackerRow, int attackerCol, int defenderRow, int defenderCol) {
         Unit attacker = battlefield.getUnitAtPosition(attackerRow, attackerCol);
         Unit defender = battlefield.getUnitAtPosition(defenderRow, defenderCol);
         if (attacker == null || defender == null ) {
             return new HeavenReturnStatus(false, "Could not find both an attacking unit and defending unit");
         }
-        if (attacker.getOwner() != player) {
+        if (attacker.getOwner() != currentPlayer) {
             return new HeavenReturnStatus(false, "Cannot attack with unowned unit");
         }
         if (attacker.getOwner() == defender.getOwner()) {
@@ -328,7 +312,7 @@ public class GameController {
         return new HeavenReturnStatus(false, "Unit cannot attack target square");
     }
 
-    private HeavenReturnStatus createUnit(int row, int col, String identifier, Player player) {
+    private HeavenReturnStatus createUnit(int row, int col, String identifier) {
         Structure structure = battlefield.getStructureAtPosition(row, col);
 
         if (structure == null) {
@@ -337,25 +321,64 @@ public class GameController {
         if (structure.getStructureType() != StructureType.FACTORY) {
             return new HeavenReturnStatus(false, "Unit - Structure creation mismatch");
         }
-        if (structure.getOwner() != player) {
+        if (structure.getOwner() != currentPlayer) {
             return new HeavenReturnStatus(false, "Cannot create unit on unowned structure");
         }
         if (!battlefield.isOpenPosition(row, col)) {
             return new HeavenReturnStatus(false, "Cannot create unit on occupied structure");
         }
-        if (!playerFunds.keySet().contains(player)) {
+        if (!playerFunds.keySet().contains(currentPlayer)) {
             return new HeavenReturnStatus(false, "Invalid player provided");
         }
 
-        Unit unitToCreate = new Unit(unitTypes.get(identifier), player);
+        Unit unitToCreate = new Unit(unitTypes.get(identifier), currentPlayer);
         int unitCost = unitToCreate.getCost();
-        int currentPlayerFunds = playerFunds.get(player);
+        int currentPlayerFunds = playerFunds.get(currentPlayer);
         if (unitCost > currentPlayerFunds) {
-            return new HeavenReturnStatus(false, player + " cannot afford purchase");
+            return new HeavenReturnStatus(false, currentPlayerFunds + " cannot afford purchase");
         }
 
-        playerFunds.replace(player, currentPlayerFunds - unitCost);
+        playerFunds.replace(currentPlayer, currentPlayerFunds - unitCost);
         battlefield.addUnit(unitToCreate, row, col);
+
+        return new HeavenReturnStatus(true);
+    }
+
+    /**
+     * Perform actions needed to handle end of turn logistics including:
+     *   -Reset movement and attack flags for last player's units
+     *   -Calculate and record income
+     *   -Updated currentPlayer
+     *   -Redraw the Gui and update info
+     *   -Increment turnCount
+     * @return
+     */
+    private HeavenReturnStatus endTurn() {
+        //TODO: Perhaps in the future this only needs to flip units belong to the previous player.
+        battlefield.resetUnitActivity();
+
+        if (currentPlayer == Player.PLAYER_ONE) {
+            currentPlayer = Player.PLAYER_TWO;
+        } else {
+            currentPlayer = Player.PLAYER_ONE;
+
+            turnCount++;
+
+            // Beginning of each player's turn: calculate funds
+            int totalIncomePlayerOne = playerFunds.get(Player.PLAYER_ONE);
+            int totalIncomePlayerTwo = playerFunds.get(Player.PLAYER_TWO);
+            for (Structure structure : battlefield.getStructures()) {
+                if (structure.getOwner() == Player.PLAYER_ONE) {
+                    totalIncomePlayerOne += 1000;
+                } else if (structure.getOwner() == Player.PLAYER_TWO) {
+                    totalIncomePlayerTwo += 1000;
+                }
+            }
+            playerFunds.replace(Player.PLAYER_ONE, totalIncomePlayerOne);
+            playerFunds.replace(Player.PLAYER_TWO, totalIncomePlayerTwo);
+        }
+
+        setupGui();
 
         return new HeavenReturnStatus(true);
     }
