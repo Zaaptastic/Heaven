@@ -22,7 +22,6 @@ import static util.HeavenUtils.findLegalMoves;
 
 public class GameController {
     private Battlefield battlefield;
-    private Scanner listener;
     private HashMap<String, UnitType> unitTypes;
 
     private int turnCount;
@@ -33,6 +32,7 @@ public class GameController {
     private Scene scene;
     private Label gameInfoLabel;
     private Label squareInfoLabel;
+    private VBox buttonsBox;
 
     public GameController(BattlefieldSpecification battlefieldSpecification, Stage stage) {
         this.turnCount = 0;
@@ -40,8 +40,6 @@ public class GameController {
         this.playerFunds = new HashMap<>();
         this.playerFunds.put(Player.PLAYER_ONE, 0);
         this.playerFunds.put(Player.PLAYER_TWO, 0);
-
-        this.listener = new Scanner(System.in);
 
         this.unitTypes = new HashMap<>();
         List<UnitType> allUnitTypes = HeavenUtils.getAllUnitTypes();
@@ -102,7 +100,7 @@ public class GameController {
             gameInfoLabel.setText("Temporary UI for making moves:\nend - End Turn\nmR,C:R,C - move unit to new position" +
                     "\naR,C:R,C - attack with unit to position\ncR,C:I - create unit at structure\n" +
                     "show - Show current battlefield state\n>");
-            String input = listener.next();
+            String input = "NULL";
 
             if (input.equals("end")) {
                 endOfTurn = true;
@@ -193,10 +191,11 @@ public class GameController {
     private void setupGui() {
         this.gameInfoLabel = new Label(getGameInfoText(Player.PLAYER_ONE));
         squareInfoLabel = new Label("\n\n\n\n");
-        Label buttons = new Label("buttons");
+        buttonsBox = new VBox();
+        createActionButtonsForSquare(null);
 
         VBox leftBox = gridToBox(battlefield.getGrid());
-        VBox rightBox = new VBox(gameInfoLabel, squareInfoLabel, buttons);
+        VBox rightBox = new VBox(gameInfoLabel, squareInfoLabel, buttonsBox);
 
         HBox mainBox = new HBox(leftBox, rightBox);
 
@@ -233,23 +232,40 @@ public class GameController {
         for (int r = 0; r < grid.length; r++) {
             HBox singleRow = new HBox();
             for (int c = 0; c < grid[r].length; c++) {
-                singleRow.getChildren().add(createButtonForSquare(grid[r][c]));
+                singleRow.getChildren().add(createGridButtonForSquare(grid[r][c]));
             }
             boxOfRows.getChildren().add(singleRow);
         }
         return boxOfRows;
     }
 
-    private Button createButtonForSquare(Square square) {
+    private Button createGridButtonForSquare(Square square) {
         String buttonText = square.toString();
         Button newButton = new Button(buttonText);
         //TODO: Fix dimensions of button and improve buttonText
 
         newButton.setOnAction(value -> {
             squareInfoLabel.setText(square.getFullInfo());
+            createActionButtonsForSquare(square);
         });
 
         return newButton;
+    }
+
+    private void createActionButtonsForSquare(Square square) {
+        Button endTurnButton = new Button("End Turn");
+        buttonsBox.getChildren().remove(0, buttonsBox.getChildren().size());
+        buttonsBox.getChildren().add(endTurnButton);
+        if (square == null) {
+            return;
+        } else if (square.getUnitOnSquare() != null) {
+            Button moveButton = new Button("Move");
+            Button attackButton = new Button("Attack");
+            buttonsBox.getChildren().addAll(moveButton, attackButton);
+        } else if (square.getStructureOnSquare() != null && square.getStructureOnSquare().getStructureType() == StructureType.FACTORY) {
+            Button createButton = new Button("Create");
+            buttonsBox.getChildren().add(createButton);
+        }
     }
 
 
