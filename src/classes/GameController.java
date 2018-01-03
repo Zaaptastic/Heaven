@@ -36,6 +36,7 @@ public class GameController {
     private Stage stage;
     private Scene scene;
     private Label mainLabel;
+    private Label infoLabel;
 
     public GameController(BattlefieldSpecification battlefieldSpecification, Stage stage) {
         this.turnCount = 0;
@@ -197,12 +198,11 @@ public class GameController {
      * |---------------------|
      */
     private void setupGui() {
-        Label grid = new Label(battlefield.gridToString());
-        Label info = new Label("Info");
+        infoLabel = new Label("Info");
         Label buttons = new Label("buttons");
 
-        HBox leftBox = new HBox(grid);
-        VBox rightBox = new VBox(info, buttons);
+        VBox leftBox = gridToBox(battlefield.getGrid());
+        VBox rightBox = new VBox(infoLabel, buttons);
 
         HBox mainBox = new HBox(leftBox, rightBox);
 
@@ -212,6 +212,32 @@ public class GameController {
         stage.setScene(scene);
         stage.show();
     }
+
+
+    public VBox gridToBox(Square[][] grid) {
+        VBox boxOfRows = new VBox();
+        for (int r = 0; r < grid.length; r++) {
+            HBox singleRow = new HBox();
+            for (int c = 0; c < grid[r].length; c++) {
+                singleRow.getChildren().add(createButtonForSquare(grid[r][c]));
+            }
+            boxOfRows.getChildren().add(singleRow);
+        }
+        return boxOfRows;
+    }
+
+    private Button createButtonForSquare(Square square) {
+        String buttonText = square.toString();
+        Button newButton = new Button(buttonText);
+        //TODO: Fix dimensions of button and improve buttonText
+
+        newButton.setOnAction(value -> {
+            infoLabel.setText(buttonText);
+        });
+
+        return newButton;
+    }
+
 
     private HeavenReturnStatus moveUnit(int startRow, int startCol, int endRow, int endCol, Player player) {
         Unit unitToMove = battlefield.getUnitAtPosition(startRow, startCol);
