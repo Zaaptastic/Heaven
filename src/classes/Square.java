@@ -38,7 +38,35 @@ public class Square {
             structureId = HeavenUtils.getStructureIdentifier(structureOnSquare);
             structureOwnerId = HeavenUtils.getStructureOwnerIdentifier(structureOnSquare);
         }
-        return "[ " + unitId + unitOwnerId + " | " + structureId + structureOwnerId + " ] ";
+        return "[ " + unitId + unitOwnerId + " | " + structureId + structureOwnerId + " ]";
+    }
+
+    /**
+     * In contrast to the above, this method returns a full representation of information about the current Square.
+     * @return STring representation of all Square information.
+     */
+    public String getFullInfo() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Currently Selected Coordinates: (" + row + "," + col + ")");
+        // First, populate with Unit information
+        if (unitOnSquare == null) {
+            stringBuilder.append("\nUnit: None");
+        } else {
+            stringBuilder.append(String.format("\nUnit: %s's %s [HP:%d/%d ATK:%d DEF:%d SPEED:%d RANGE:%d-%d]", unitOnSquare.getOwner(),
+                    unitOnSquare.getUnitType(), unitOnSquare.getCurrentHealth(), unitOnSquare.getMaximumHealth(),
+                    unitOnSquare.getAttackValue(), unitOnSquare.getDefenseValue(), unitOnSquare.getMovementSpeed(),
+                    unitOnSquare.getMinimumRange(), unitOnSquare.getMinimumRange()));
+        }
+        // Next, populate with Structure information
+        if (structureOnSquare == null) {
+            stringBuilder.append("\nStructure: None");
+        } else {
+            stringBuilder.append(String.format("\nStructure: %s [HP:%d/%d OWNER:%s]", structureOnSquare.getStructureType(),
+                    structureOnSquare.getCurrentHealth(), structureOnSquare.getMaxHealth(), structureOnSquare.getOwner()));
+        }
+        stringBuilder.append("\n\n");
+
+        return stringBuilder.toString();
     }
 
     public int getRow() {

@@ -26,10 +26,12 @@ public class TutorialIsland extends BattlefieldSpecification {
         // Neutral Structures
         toReturn.add(new Structure(StructureType.CITY, 0,3));
         toReturn.add(new Structure(StructureType.CITY, 3, 0));
-        toReturn.add(new Structure(StructureType.CITY, 4,7));
-        toReturn.add(new Structure(StructureType.CITY, 7, 4));
+        toReturn.add(new Structure(StructureType.CITY, 3,6));
+        toReturn.add(new Structure(StructureType.CITY, 6, 3));
         toReturn.add(new Structure(StructureType.CITY, 9, 6));
         toReturn.add(new Structure(StructureType.CITY, 6, 9));
+        toReturn.add(new Structure(StructureType.CITY, 4, 4));
+        toReturn.add(new Structure(StructureType.CITY, 5, 5));
 
         return toReturn;
     }

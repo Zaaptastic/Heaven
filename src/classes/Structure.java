@@ -68,7 +68,7 @@ public class Structure {
     }
 
     public int getMaxHealth() {
-        return getMaxHealth();
+        return maxHealth;
     }
 
     public Player getOwner() {

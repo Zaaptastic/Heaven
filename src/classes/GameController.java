@@ -1,7 +1,6 @@
 package classes;
 
 import battlefields.BattlefieldSpecification;
-import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -20,10 +19,7 @@ import java.util.Scanner;
 
 import static util.HeavenUtils.findLegalAttacks;
 import static util.HeavenUtils.findLegalMoves;
-/*
-    <applet code="TestRunner" width=800 height=600>
-    </applet>
- */
+
 public class GameController {
     private Battlefield battlefield;
     private Scanner listener;
@@ -35,8 +31,8 @@ public class GameController {
     private StringBuilder gameLog;
     private Stage stage;
     private Scene scene;
-    private Label mainLabel;
-    private Label infoLabel;
+    private Label gameInfoLabel;
+    private Label squareInfoLabel;
 
     public GameController(BattlefieldSpecification battlefieldSpecification, Stage stage) {
         this.turnCount = 0;
@@ -55,7 +51,6 @@ public class GameController {
 
         this.gameLog = new StringBuilder();
         this.stage = stage;
-        this.mainLabel = new Label("Main Label");
         setupGui();
     }
 
@@ -63,7 +58,6 @@ public class GameController {
         turnCount++;
         gameLog.append("-------------------------- Turn " + turnCount + " --------------------------\n");
         gameLog.append("~~~~~ Player One ~~~~~~\n");
-        mainLabel.setText("In turn " + turnCount);
 
         if (true) {
             return new HeavenReturnStatus(true);
@@ -103,10 +97,9 @@ public class GameController {
         int updatedFunds = playerFunds.get(player) + totalIncome;
         playerFunds.replace(player, updatedFunds);
 
-        //TODO: Add turn history and logging
         while (!endOfTurn) {
             // Listen for inputs, executing each as a move, until the player declares end of his turn.
-            mainLabel.setText("Temporary UI for making moves:\nend - End Turn\nmR,C:R,C - move unit to new position" +
+            gameInfoLabel.setText("Temporary UI for making moves:\nend - End Turn\nmR,C:R,C - move unit to new position" +
                     "\naR,C:R,C - attack with unit to position\ncR,C:I - create unit at structure\n" +
                     "show - Show current battlefield state\n>");
             String input = listener.next();
@@ -125,7 +118,7 @@ public class GameController {
 
                 HeavenReturnStatus returnStatus = moveUnit(startRow, startCol, endRow, endCol, player);
                 if (!returnStatus.getSuccessStatus()) {
-                    mainLabel.setText(returnStatus.getErrorMsg());
+                    gameInfoLabel.setText(returnStatus.getErrorMsg());
                 }
                 gameLog.append(input + " -> " + endRow + "," + endCol + "\n");
             } else if (input.startsWith("a")) {
@@ -140,7 +133,7 @@ public class GameController {
 
                 HeavenReturnStatus returnStatus = attackUnit(startRow, startCol, endRow, endCol, player);
                 if (!returnStatus.getSuccessStatus()) {
-                    mainLabel.setText(returnStatus.getErrorMsg());
+                    gameInfoLabel.setText(returnStatus.getErrorMsg());
                 }
                 gameLog.append(input + " -> " + endRow + "," + endCol + "\n");
             } else if (input.startsWith("c")) {
@@ -152,13 +145,13 @@ public class GameController {
 
                 HeavenReturnStatus returnStatus = createUnit(row, col, identifier, player);
                 if (!returnStatus.getSuccessStatus()) {
-                    mainLabel.setText(returnStatus.getErrorMsg());
+                    gameInfoLabel.setText(returnStatus.getErrorMsg());
                 }
                 gameLog.append(input);
             } else if (input.equals("show")) {
-                mainLabel.setText(battlefield.gridToString());
+                gameInfoLabel.setText(battlefield.gridToString());
             } else {
-                mainLabel.setText("Could not parse input");
+                gameInfoLabel.setText("Could not parse input");
             }
         }
 
@@ -198,23 +191,44 @@ public class GameController {
      * |---------------------|
      */
     private void setupGui() {
-        infoLabel = new Label("Info");
+        this.gameInfoLabel = new Label(getGameInfoText(Player.PLAYER_ONE));
+        squareInfoLabel = new Label("\n\n\n\n");
         Label buttons = new Label("buttons");
 
         VBox leftBox = gridToBox(battlefield.getGrid());
-        VBox rightBox = new VBox(infoLabel, buttons);
+        VBox rightBox = new VBox(gameInfoLabel, squareInfoLabel, buttons);
 
         HBox mainBox = new HBox(leftBox, rightBox);
 
-        this.scene = new Scene(mainBox, 800, 600);
+        this.scene = new Scene(mainBox, 1000, 600);
 
         stage.setTitle("Heaven Game Stage");
         stage.setScene(scene);
         stage.show();
     }
 
+    private String getGameInfoText(Player player) {
+        StringBuilder stringBuilder = new StringBuilder();
 
-    public VBox gridToBox(Square[][] grid) {
+        stringBuilder.append("~~~Turn ");
+        stringBuilder.append(turnCount);
+        stringBuilder.append("~~~");
+        stringBuilder.append("\nPLAYER_ONE: ");
+        stringBuilder.append(playerFunds.get(Player.PLAYER_ONE));
+        if (player == Player.PLAYER_ONE) {
+            stringBuilder.append(" <---");
+        }
+        stringBuilder.append("\nPLAYER_TWO: ");
+        stringBuilder.append(playerFunds.get(Player.PLAYER_TWO));
+        if (player == Player.PLAYER_TWO) {
+            stringBuilder.append(" <---");
+        }
+        stringBuilder.append("\n\n");
+
+        return stringBuilder.toString();
+    }
+
+    private VBox gridToBox(Square[][] grid) {
         VBox boxOfRows = new VBox();
         for (int r = 0; r < grid.length; r++) {
             HBox singleRow = new HBox();
@@ -232,7 +246,7 @@ public class GameController {
         //TODO: Fix dimensions of button and improve buttonText
 
         newButton.setOnAction(value -> {
-            infoLabel.setText(buttonText);
+            squareInfoLabel.setText(square.getFullInfo());
         });
 
         return newButton;
