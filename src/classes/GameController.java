@@ -397,6 +397,24 @@ public class GameController {
         currentSelectedRow = 0;
         currentSelectedCol = 0;
 
+        // Recalculate structure health
+        for (Structure structure : battlefield.getStructures()) {
+            Unit unit = battlefield.getUnitAtPosition(structure.getRow(), structure.getCol());
+            if (unit == null || unit.getOwner() == structure.getOwner()) {
+                structure.increaseHealth();
+                continue;
+            }
+
+            // TODO: Move this to an Action so that the healing can be moved to the else-block
+            if (unit.getUnitType().getIdentifier().equals("I")) {
+                HeavenReturnStatus returnStatus = structure.decreaseHealth(currentPlayer, unit.getCurrentHealth());
+                if (returnStatus.getEvent() == Event.CAPITAL_CAPTURE) {
+                    // GAME OVER
+                    return returnStatus;
+                }
+            }
+        }
+
         if (currentPlayer == Player.PLAYER_ONE) {
             currentPlayer = Player.PLAYER_TWO;
         } else {
@@ -416,6 +434,7 @@ public class GameController {
             }
             playerFunds.replace(Player.PLAYER_ONE, totalIncomePlayerOne);
             playerFunds.replace(Player.PLAYER_TWO, totalIncomePlayerTwo);
+
         }
 
         setupGui(null);
